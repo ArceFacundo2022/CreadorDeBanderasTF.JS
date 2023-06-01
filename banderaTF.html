@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Dibujar Banderas con Tensores</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"></script>
+    </head>
+    <body>
+        <div id="div" src="" style="color: #1d73f5;"></div>
+        <div style="text-align: center ;">
+            <h1 style="margin-top: 20px; text-align: center; margin-bottom: 20px;" id="title">Dimensiones de la bandera</h1>
+            <input type="text" id="Filas"><input type="text" id="Columnas">
+            <input type="button" value="Cargar Dimensiones" onclick="crearDime()"></input>
+        </div>
+        <div style="text-align: center ;">
+            <h1 style="margin-top: 20px; text-align: center; margin-bottom: 20px;" id="title">Pintar Bandera</h1>
+            <input type="text" id="Cant"><input type="text" id="Colores">
+            <input type="button" value="Dibujar Bandera" onclick="cargarBandera()"></input>
+            
+        </div>
+        <div style="text-align: center ;">
+            <canvas id="Bandera-Suiza" width="50" height="50" style="padding-top: 4%;"></canvas>
+            <canvas id="Bandera" width="50" height="50" style="padding-top: 4%;"></canvas>
+        </div>
+        <hr>
+        <div style="text-align: center ;">
+            <h3 style="margin-top: 20px; text-align: center; margin-bottom: 20px;">Colores Para usar</h3>
+            <p style="color: #1d73f5; font-weight: bold">29,115,245</p>
+            <p style="color: #000dff; font-weight: bold">0,13,255</p>
+            <p style="color: #ff0000; font-weight: bold">255,0,0</p>
+            <p style="color: #ffffff; background-color: #000000; font-weight: bold ;">255,255,255</p>
+            <p style="color: #000000; font-weight: bold">0,0,0</p>
+        </div>
+        <!-- <canvas id="imagen"></canvas>
+        <canvas id="aleatoriedad"></canvas> -->
+       
+        <script>
+
+            const bandera = []
+            const info = {
+                fil : 0,
+                col : 0,
+                cant : 0,
+                tono : [],
+                f : 0,
+                c : 0
+            }
+
+            const pintar = (x, y, color, array, total) => {
+                for (let i = y; i < total; i++) {
+                    array[x][i] = color;
+                }
+            }
+
+            const pintarArray = (x, y, color, array, total) => {
+                console.log("y: "+ y + " total: " + total)
+                for (let i = y; i < total; i++) {
+                    array[x][i] = color.split(",");
+                }
+            }
+
+            const dimeBandera = (f, array) => {
+                for (let i = 0; i < f; i++) {
+                    array.push([])
+                }
+            }
+
+            const pintarCanvas = (array,ex,ey,idBandera) =>{
+                const tensorBandera = tf.tensor(array, null, 'int32')
+                const cuadradoGrande = tensorBandera.tile ([ex, ey, 1]);
+                const canvasBandera = document.getElementById(idBandera);
+                tf.browser.toPixels(tensorBandera, canvasBandera).then(() => {
+                    // No es mala práctica limpiar y asegurarse de que tenemos todo 
+                    console.log(tf.memory().numBytes)
+                });
+            }
+
+            const banderaBase = () => {
+                const suiza = []
+
+                dimeBandera(50, suiza)
+
+                const color = [[255,0,0],[255,255,255],[29,115,245]]
+                var parte = 0
+
+                for (let i = 0; i < 50; i++) {
+                    switch(i){
+                        case 11:
+                            parte = 1
+                            break
+                        case 21:
+                            parte = 2
+                            break
+                        case 31:
+                            parte = 1
+                            break
+                        case 41:
+                            parte = 0
+                            break
+                    }
+                    switch(parte){
+                        case 0:
+                            pintar(i,0,color[0],suiza,50)
+                            break
+                        case 1:
+                            pintar(i,0,color[0],suiza,50)
+                            pintar(i,20,color[1],suiza,50)
+                            pintar(i,30,color[0],suiza,50)
+                            break
+                        case 2:
+                            pintar(i,0,color[0],suiza,50)
+                            pintar(i,10,color[1],suiza,50)
+                            pintar(i,40,color[0],suiza,50)
+                            break
+                    }
+                }
+                pintarCanvas(suiza,50,50,"Bandera-Suiza")
+            }
+
+            const crearDime = () =>{
+                info.fil = document.getElementById('Filas').value
+                info.col = document.getElementById('Columnas').value
+                dimeBandera(info.fil, bandera)
+            }
+            const cargarBandera = () =>{
+                let cant = document.getElementById('Cant').value.split(";")
+                let tono = document.getElementById('Colores').value.split("|")
+                console.log(cant)
+                console.log(tono)
+                let x
+                for (let u = 0; u < cant.length; u++) {
+                        cant[u] = cant[u].split(",")   
+                        for(let r = 0; r < cant[u].length; r++){
+                            cant[u][r] = parseInt(cant[u][r])
+                        }
+                }
+                console.log(cant)
+                console.log(tono)
+                for (let u = 0; u < tono.length; u++) {
+                    tono[u] = tono[u].split(";")
+                    
+                }
+                console.log(cant)
+                console.log(tono)
+
+                let tam = parseInt(prompt("Ingrese tamaño de los pixeles"))
+                let p = 0
+                for (let i = 0; i < info.fil; i+=tam) {
+                    x = 0
+                        for (let k = 0; k < info.col; k++) {
+                            console.log("valor k: "+ k + " valor array: " + cant[p][x])
+                            pintarArray(i, k, tono[p][x], bandera,(k + cant[p][x]))
+                            k += cant[p][x]-1
+                            x ++
+                        }
+
+                    for (let j = (i+1); j < (i + tam); j++) {
+                        for (let m = 0; m < info.col; m++) {
+                            bandera[j][m] = bandera[i][m]
+                        }
+                    }
+                    p ++
+
+                }
+                console.log(bandera)
+                pintarCanvas(bandera,50,50,"Bandera")
+            }
+
+            const cargarBandera2 = () =>{
+                let cant = []
+                let tono = []
+                let x
+                let tam = parseInt(prompt("Ingrese tamaño de los pixeles"))
+                for (let i = 0; i < info.fil; i+=tam) {
+                    alert("Fila "+ i + "hasta" + (i+tam))
+                    cant = prompt("Ingrese el vector de cantidad").split(",")
+                    for (let u = 0; u < cant.length; u++) {
+                        cant[u] = parseInt(cant[u])
+                        
+                    }
+                    tono = prompt("Ingrese el vector de color").split(";")
+                    x = 0
+                    console.log(cant)
+                    console.log(tono)
+                        for (let k = 0; k < info.col; k++) {
+                            pintarArray(i, k, tono[x], bandera,(k + cant[x]))
+                            k += cant[x]-1
+                            x ++
+                        }
+
+                    for (let j = (i+1); j < (i + tam); j++) {
+                        for (let m = 0; m < info.col; m++) {
+                            bandera[j][m] = bandera[i][m]
+                        }
+                    }
+                }
+                console.log(bandera)
+                pintarCanvas(bandera,50,50,"Bandera")
+            }
+
+            banderaBase()
+
+
+            //Filas: 85 | Columnas: 155
+
+            //Tamaño de Pixel: 5
+
+            //Cantidad de Repeticiones: 15,20,30,5,15,5,40,10,15;25,25,15,5,15,5,30,10,25;10,25,25,5,5,15,5,15,15,25,10;10,10,30,20,15,5,5,10,30,20;20,10,30,10,15,10,30,20,10;30,15,20,5,15,5,20,25,20;70,15,70;155;155;155;70,15,70;25,20,20,5,15,5,20,10,35;15,20,25,10,15,10,25,10,25;5,20,25,10,5,5,15,20,25,10,15;15,25,10,15,5,15,5,5,20,25,10,5;5,25,10,25,5,15,5,15,20,25,5;20,10,35,5,15,5,25,20,20
+
+            //Colores: 255,0,0;255,255,255;0,13,255;255,255,255;255,0,0;255,255,255;0,13,255;255,255,255;255,0,0|255,0,0;255,255,255;0,13,255;255,255,255;255,0,0;255,255,255;0,13,255;255,255,255;255,0,0|255,255,255;255,0,0;255,255,255;0,13,255;255,255,255;255,0,0;255,255,255;0,13,255;255,255,255;255,0,0;255,255,255|0,13,255;255,255,255;255,0,0;255,255,255;255,0,0;255,255,255;0,13,255;255,255,255;255,0,0;255,255,255|0,13,255;255,255,255;255,0,0;255,255,255;255,0,0;255,255,255;255,0,0;255,255,255;0,13,255|0,13,255;255,255,255;255,0,0;255,255,255;255,0,0;255,255,255;255,0,0;255,255,255;0,13,255|255,255,255;255,0,0;255,255,255|255,0,0|255,0,0|255,0,0|255,255,255;255,0,0;255,255,255|0,13,255;255,255,255;255,0,0;255,255,255;255,0,0;255,255,255;255,0,0;255,255,255;0,13,255|0,13,255;255,255,255;255,0,0;255,255,255;255,0,0;255,255,255;255,0,0;255,255,255;0,13,255|0,13,255;255,255,255;255,0,0;255,255,255;0,13,255;255,255,255;255,0,0;255,255,255;255,0,0;255,255,255;0,13,255|255,255,255;255,0,0;255,255,255;0,13,255;255,255,255;255,0,0;255,255,255;0,13,255;255,255,255;255,0,0;255,255,255;0,13,255|255,255,255;255,0,0;255,255,255;0,13,255;255,255,255;255,0,0;255,255,255;0,13,255;255,255,255;255,0,0;255,255,255|255,0,0;255,255,255;0,13,255;255,255,255;255,0,0;255,255,255;0,13,255;255,255,255;255,0,0
+
+        </script>
+    </body>
+</html>
